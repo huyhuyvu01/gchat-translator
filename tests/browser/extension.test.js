@@ -190,3 +190,22 @@ test('controls survive recycled markup without duplicates or rewriting original 
   await page.evaluate(() => { document.querySelector('[data-message-id="moved"]').remove(); });
   await expect(page.locator('local-chat-translation')).toHaveCount(0);
 });
+
+test('shared UI mounts under Google Chat Trusted Types policy', async t => {
+  const { build } = await import('esbuild');
+  const browser = await chromium.launch({ channel: 'chromium', headless: true, args: ['--no-sandbox'] });
+  t.after(() => browser.close());
+  const page = await browser.newPage();
+  await page.route('https://chat.google.com/', route => route.fulfill({
+    contentType: 'text/html', headers: { 'Content-Security-Policy': "require-trusted-types-for 'script'" }, body: markup,
+  }));
+  await page.goto('https://chat.google.com/');
+  const bundle = await build({
+    stdin: { contents: `import { mountChat } from './extension/src/chat.js';
+      mountChat({document, location, initialSettings:{enabled:true, targetLanguage:'en', sourceLanguage:'auto'}});`, resolveDir: process.cwd() },
+    bundle: true, format: 'iife', write: false,
+  });
+  await page.evaluate(bundle.outputFiles[0].text);
+  await expect(page.getByRole('button', { name: 'Translate to English' })).toHaveCount(1);
+  await expect(page.locator('[jsname="bgckF"]')).toHaveText('Bonjour tout le monde !');
+});

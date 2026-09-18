@@ -35,15 +35,22 @@ export function mountChat({ document, location, initialSettings, translate = tra
     const host = document.createElement(controlTag);
     host.setAttribute('translate', 'no');
     const shadow = host.attachShadow({ mode: 'open' });
-    // This template is static. Message text and model output only use textContent.
-    shadow.innerHTML = `<style>${style}</style><div class="panel"><button type="button"></button>
-      <span class="status" role="status" aria-live="polite"></span>
-      <div class="result" id="translation" hidden><div class="label"></div><div class="text" dir="auto"></div></div></div>`;
-    const button = shadow.querySelector('button');
-    const status = shadow.querySelector('.status');
-    const result = shadow.querySelector('.result');
-    const label = shadow.querySelector('.label');
-    const output = shadow.querySelector('.text');
+    const create = (tag, attributes = {}) => {
+      const element = document.createElement(tag);
+      for (const [key, value] of Object.entries(attributes)) element.setAttribute(key, value);
+      return element;
+    };
+    const sheet = create('style');
+    sheet.textContent = style;
+    const panel = create('div', { class: 'panel' });
+    const button = create('button', { type: 'button' });
+    const status = create('span', { class: 'status', role: 'status', 'aria-live': 'polite' });
+    const result = create('div', { class: 'result', id: 'translation', hidden: '' });
+    const label = create('div', { class: 'label' });
+    const output = create('div', { class: 'text', dir: 'auto' });
+    result.append(label, output);
+    panel.append(button, status, result);
+    shadow.append(sheet, panel);
     const record = { host, text, identity: body.closest('[data-message-id]')?.getAttribute('data-message-id'), request: null };
     records.set(body, record);
     const idle = () => { button.textContent = `Translate to ${languages[settings.targetLanguage]}`; };
