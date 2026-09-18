@@ -8,24 +8,46 @@
   <script src="settings.js" defer></script>
 </head>
 <body>
-  <main>
-    <h1>Local Chat Translator</h1>
-    <p>Translate a message without replacing the original.</p>
+  <main class="settings">
+    <header>
+      <img class="logo" src="icons/translate.svg" width="36" height="36" alt="">
+      <div class="heading">
+        <h1>Local Chat Translator</h1>
+        <p>Keep the original. Read the translation.</p>
+      </div>
+      <button id="theme" class="theme" type="button" aria-label="Dark mode" aria-pressed="false" title="Switch to dark mode">
+        <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13A8.5 8.5 0 0 1 11 3.5 8.5 8.5 0 1 0 20.5 13Z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg>
+      </button>
+    </header>
     <form>
       <fieldset disabled>
-        <label class="toggle"><input type="checkbox" id="enabled"> Show translation buttons</label>
-        <label for="targetLanguage">Translate into</label>
-        <select id="targetLanguage"></select>
-        <label for="sourceLanguage">Message language</label>
-        <select id="sourceLanguage"><option value="auto">Detect automatically</option></select>
-        <p class="hint">Choose a message language if detection struggles with short messages.</p>
-        <button type="submit">Save settings</button>
+        <label class="toggle" for="enabled">
+          <span>Show translation buttons</span>
+          <input type="checkbox" id="enabled" role="switch">
+        </label>
+        <div class="field">
+          <label for="targetLanguage">Translate into</label>
+          <select id="targetLanguage"></select>
+        </div>
+        <div class="field">
+          <label for="sourceLanguage">Message language</label>
+          <select id="sourceLanguage"><option value="auto">Detect automatically</option></select>
+        </div>
+        <button class="save" type="submit">Save settings</button>
       </fieldset>
     </form>
     <p id="status" role="status" aria-live="polite"></p>
-    <p class="hint">Open Google Chat and click Translate beside a message. The first use may download Chrome language models and ask you to click Retry.</p>
-    <p class="hint">Text is processed on your device. Only these settings are saved locally. Requires desktop Chrome with its built-in translation APIs.</p>
-    <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>
+    <details>
+      <summary>Help &amp; privacy<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4"/></svg></summary>
+      <div class="help">
+        <p>In Google Chat, hover over a message and click Translate. Your original message stays in place.</p>
+        <p>If short messages are detected incorrectly, choose a message language above.</p>
+        <p>The first translation may download Chrome's language models and ask you to retry. Requires desktop Chrome with built-in translation APIs.</p>
+        <p>Messages are translated on your device. Only your preferences are saved locally.</p>
+        <a href="privacy.html" target="_blank" rel="noopener">Privacy policy <span aria-hidden="true">↗</span></a>
+      </div>
+    </details>
   </main>
 </body>
 </html>
