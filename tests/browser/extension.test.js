@@ -152,3 +152,41 @@ test('Gmail Chat iframe translates through the top frame despite frame API polic
   assert.equal(await isolated('translationCalls'), 1);
   assert.equal(requests.length, 2);
 });
+
+
+test('cancellation and settings changes discard pending results', async t => {
+  const { page, isolated } = await launch(t);
+  await isolated(mock + `Translator.create = async () => ({
+    translate: () => new Promise(resolve => { globalThis.completeTranslation = resolve; }), destroy() {}
+  });`);
+  await page.getByRole('button', { name: 'Translate to English' }).click();
+  await expect.poll(() => isolated('typeof completeTranslation')).toBe('function');
+  await page.getByRole('button', { name: 'Cancel translation' }).click();
+  await isolated("completeTranslation('Obsolete translation')");
+  await expect(page.locator('local-chat-translation .text')).toBeEmpty();
+  await expect(page.getByRole('button', { name: 'Translate to English' })).toHaveCount(1);
+  await page.getByRole('button', { name: 'Translate to English' }).click();
+  await isolated("chrome.storage.local.set({targetLanguage: 'vi'})");
+  await expect(page.getByRole('button', { name: 'Translate to Vietnamese' })).toHaveCount(1);
+  await isolated("completeTranslation('Wrong target language')");
+  await expect(page.locator('local-chat-translation .text')).toBeEmpty();
+});
+
+test('controls survive recycled markup without duplicates or rewriting original text', async t => {
+  const { page } = await launch(t);
+  await expect(page.locator('local-chat-translation')).toHaveCount(1);
+  await page.evaluate(() => {
+    document.querySelector('local-chat-translation').remove();
+  });
+  await expect(page.locator('local-chat-translation')).toHaveCount(1);
+  await page.evaluate(() => {
+    const section = document.createElement('section');
+    section.dataset.messageId = 'moved';
+    document.body.append(section);
+    section.append(document.querySelector('[jsname="bgckF"]'));
+  });
+  await expect(page.locator('[data-message-id="moved"] local-chat-translation')).toHaveCount(1);
+  await expect(page.locator('local-chat-translation')).toHaveCount(1);
+  await page.evaluate(() => { document.querySelector('[data-message-id="moved"]').remove(); });
+  await expect(page.locator('local-chat-translation')).toHaveCount(0);
+});
