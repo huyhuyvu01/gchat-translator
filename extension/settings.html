@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local Chat Translator</title>
+  <link rel="stylesheet" href="settings.css">
+  <script src="settings.js" defer></script>
+</head>
+<body>
+  <main>
+    <h1>Local Chat Translator</h1>
+    <p>Translate a message without replacing the original.</p>
+    <form>
+      <fieldset disabled>
+        <label class="toggle"><input type="checkbox" id="enabled"> Show translation buttons</label>
+        <label for="targetLanguage">Translate into</label>
+        <select id="targetLanguage"></select>
+        <label for="sourceLanguage">Message language</label>
+        <select id="sourceLanguage"><option value="auto">Detect automatically</option></select>
+        <p class="hint">Choose a message language if detection struggles with short messages.</p>
+        <button type="submit">Save settings</button>
+      </fieldset>
+    </form>
+    <p id="status" role="status" aria-live="polite"></p>
+    <p class="hint">Open Google Chat and click Translate beside a message. The first use may download Chrome language models and ask you to click Retry.</p>
+    <p class="hint">Text is processed on your device. Only these settings are saved locally. Requires desktop Chrome with its built-in translation APIs.</p>
+    <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>
+  </main>
+</body>
+</html>
