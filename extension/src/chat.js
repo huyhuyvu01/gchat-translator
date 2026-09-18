@@ -104,7 +104,7 @@ export function mountChat({ document, location, initialSettings, translate = tra
   function reconcile(roots) {
     if (stopped) return;
     for (const [body, record] of records) {
-      if (!active() || !body.isConnected || !record.host.isConnected ||
+      if (!active() || !body.isConnected || !record.host.isConnected || record.host.previousElementSibling !== body ||
         record.identity !== body.closest('[data-message-id]')?.getAttribute('data-message-id') ||
         extractMessage(body) !== record.text) {
         remove(body, record);
