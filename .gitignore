@@ -1,0 +1,16 @@
+# AI
+
+.agents/*
+.claude/*
+skills-lock.json
+
+node_modules/
+dist/
+artifacts/
+playwright-report/
+test-results/
+.env
+.env.*
+!.env.example
+*.pem
+*.crx
