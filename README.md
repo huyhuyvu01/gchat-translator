@@ -64,6 +64,37 @@ Run `npm run package` to create `artifacts/gchat-translator-0.1.1.zip` and its S
 
 Extract the ZIP to load it unpacked, or submit it to the Chrome Web Store.
 
+## Chrome Web Store submission
+
+Run `npm run store:assets` after installing Playwright Chromium to create `artifacts/store/`: two 1280×800 screenshots of the installed settings page, the 128×128 icon, and a 440×280 promotional image. These images contain no conversations. Upload them as listing assets, separately from the extension ZIP. The screenshots do not demonstrate native translation; finish the [manual checks](docs/MANUAL_TESTING.md) before submitting.
+
+Use this listing description:
+
+> Translate individual Google Chat messages on your device with Chrome's built-in translation APIs. Hover over a message and click Translate to show the result below the original. Hide or reopen translations, choose your target language, and override automatic language detection when needed.
+>
+> Supports standalone Google Chat and Gmail's Chat view. Requires desktop Chrome 138 or newer and available language models. Chrome may download models on first use; internet access is needed for those downloads. Language and device support vary.
+>
+> The extension processes message text locally and saves only your preferences. It has no developer server, analytics, advertisements, or third-party translation service. Google Chat still handles conversations under Google's own policies. GChat Translator is an independent project with no affiliation with Google.
+
+Use English as the listing language and Tools as the category if that category is available in the dashboard. Project URL: `https://github.com/huyhuyvu01/gchat-translator`. Support URL: `https://github.com/huyhuyvu01/gchat-translator/issues`.
+
+Privacy practices fields:
+
+| Field | Explanation |
+| --- | --- |
+| Single purpose | Translate individual Google Chat messages on the user's device while preserving the original text. |
+| `storage` | Save whether translation is enabled and the user's source and target language preferences locally. |
+| `https://chat.google.com/*` | Identify Chat messages and display translation controls and results. |
+| `https://mail.google.com/mail/*` | Support Gmail's Chat view and embedded Chat frames. The script checks the Chat route and does not select email bodies or compose fields. All-frame injection supports embedded conversations. |
+| Remote code | No. Executable code ships in the extension. Chrome manages its own language-model downloads. |
+| Data handling | Personal communications and website content are processed locally to provide translation. Message text and translations are not sent to the developer or saved in extension storage. |
+
+Complete the dashboard's data-use certifications to match these practices: no sale or unrelated transfers, no use outside the single purpose, and no use for creditworthiness or lending. Local processing still needs disclosure. See [Google's privacy requirements](https://developer.chrome.com/docs/webstore/program-policies/user-data-faq).
+
+The public policy URL will be `https://huyhuyvu01.github.io/gchat-translator/privacy.html`. Before using it, choose **GitHub Actions** in the repository's **Settings → Pages → Build and deployment → Source**, then push the privacy workflow to `main` or run **Publish privacy policy** manually from `main`. The workflow publishes the bundled policy and its stylesheet, so there is one policy to maintain. Confirm the URL works while signed out. The URL is not live until deployment succeeds.
+
+Register at the [Developer Dashboard](https://chrome.google.com/webstore/devconsole/), pay the one-time fee, verify your contact email, enable 2-Step Verification, and complete the account declarations shown there. Upload the tested ZIP, fill the listing and privacy fields, and paste the [reviewer instructions](docs/MANUAL_TESTING.md#store-reviewer-instructions). Start with unlisted distribution for a pilot; anyone with its link can install it, and Google still reviews it. Select deferred publishing if you want to inspect approval before making the listing available. See [Google's submission guide](https://developer.chrome.com/docs/webstore/publish).
+
 ## Automated releases
 
 [GitHub Actions](https://github.com/huyhuyvu01/gchat-translator/actions) runs the core tests, browser tests, build, and packaging checks on branch pushes and pull requests. After a successful push to `main`, including a merged pull request, it publishes the tested ZIP and checksum to [GitHub Releases](https://github.com/huyhuyvu01/gchat-translator/releases).

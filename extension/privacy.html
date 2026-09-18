@@ -6,16 +6,18 @@
   <title>Privacy policy · GChat Translator</title>
   <link rel="stylesheet" href="settings.css">
 </head>
-<body><main>
+<body><main class="privacy">
   <h1>Privacy policy</h1>
   <p>Effective September 18, 2026.</p>
   <p>GChat Translator reads Google Chat message text to add translation buttons. When you click Translate, Chrome's built-in Language Detector and Translator APIs process the selected message on your device.</p>
   <p>The extension does not send messages or translations to the developer, a server, or a third-party translation service. It has no analytics, telemetry, advertising, accounts, or remote code.</p>
+  <p>GChat Translator's use of user data complies with the <a href="https://developer.chrome.com/docs/webstore/program-policies/user-data-faq">Chrome Web Store User Data Policy</a>, including the Limited Use requirements. Message text is used only to provide translation. The developer does not collect, sell, or use it for advertising, credit decisions, or unrelated purposes.</p>
   <p>Chrome may contact Google to download language models, which requires an internet connection. Once the models are available, translation runs locally. Chrome and Google Chat have their own privacy policies. This extension does not change how Google Chat stores or delivers conversations.</p>
   <p>For embedded Chat, the extension passes the selected message between its scripts in the same browser tab. The message stays inside Chrome.</p>
   <p>The extension saves your enabled setting and language choices in chrome.storage.local. It saves the settings panel theme in its localStorage. These settings contain no message text, translations, conversation IDs, or browsing history. The extension does not sync them.</p>
   <p>Translations stay in page memory and on the page until the message disappears, settings change, or the page closes or reloads. Scripts with access to the page can read inline results. Turning off translation buttons removes results from open Chat pages.</p>
   <p>The storage permission lets the extension save settings. Content scripts run on chat.google.com and mail.google.com/mail/ to add controls to Chat and support Gmail's embedded Chat. They do not target email messages. The extension does not request tabs, cookies, history, webRequest, or all-sites permission.</p>
-  <p>Uninstalling the extension removes its settings. Report privacy issues through the source repository's security reporting channel. Keep private conversations out of public reports.</p>
+  <p>Uninstalling the extension removes its settings. Report privacy issues through the <a href="https://github.com/huyhuyvu01/gchat-translator/security/policy">project's security reporting channel</a>. Keep private conversations out of public reports.</p>
+  <p><a href="https://github.com/huyhuyvu01/gchat-translator">GChat Translator</a> is an independent project with no affiliation with Google.</p>
 </main></body>
 </html>
