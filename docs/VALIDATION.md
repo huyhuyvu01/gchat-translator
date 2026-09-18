@@ -1,5 +1,29 @@
 # Validation results
 
+## Sliding translation card
+
+Validated 2026-09-18.
+
+- `npm run check` passed all 10 core tests and built the extension. `npm run test:browser` passed all 13 browser tests.
+- The drawer test covers animated collapse, a persistent tab, completion while hidden, reopening without the toolbar or another translation request, keyboard activation, reversing a slide, and reduced motion.
+- Light and dark previews were checked with sample messages. The README preview renders the actual extension UI against simulated Chat markup, with a fixed sample translation.
+- These drawer checks do not replace validation in signed-in Google Chat with native models.
+
+## UI update, version 0.1.1
+
+Validated 2026-09-18.
+
+- `npm run check` passed all 10 core tests and built the extension. `npm run test:browser` passed all 12 installed-extension/browser tests.
+- New browser regressions first failed against 0.1.0 for the missing toolbar icon, pale text in a light Chat theme with a dark system theme, and the missing loading skeleton. They pass with the update.
+- The color bug came from the result's fixed palette and `color-scheme: light dark`, which followed the system theme independently of Chat. Results now copy the message's computed text style and refresh when the theme changes.
+- Browser checks cover toolbar adjacency and replacement, lazy toolbar creation with the observed live Chat markup, localized reaction labels, keyboard activation, no activation of native Chat actions, light/dark theme switching, skeleton animation, reduced motion, cancellation, errors, and cleanup after completion.
+- In signed-in standalone Chat, the hover toolbar used `[jsname="jpbBj"] [data-menu-action="1"]`. The reaction strip below the message used different markup. The new icon appeared immediately after the hover reaction action and measured 32 by 32 pixels.
+- A temporary main-world bundle with a fixed sample translation verified the skeleton, result, and close icon in live dark-mode Chat. The result color matched the original message at `rgb(227, 227, 227)`. The close icon worked, and all injected UI and test references were removed afterward. No messages were sent, edited, or deleted, and no private message text or screenshots were saved to the repository.
+- The live UI check was not an installed-extension or native-model translation check. Light/dark mismatch and theme switching were tested in the installed-extension fixtures. Real model download and translation quality still require desktop Chrome acceptance testing.
+- `npm run package` produced `artifacts/local-chat-translator-0.1.1.zip`. Two consecutive builds produced identical bytes, and the archive passed its integrity check.
+
+## Previous validation, version 0.1.0
+
 Date: 2026-09-18. Build version: 0.1.0.
 
 ## Automated checks

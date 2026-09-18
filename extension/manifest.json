@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Local Chat Translator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Translate individual Google Chat messages locally in Chrome, with the original text preserved.",
   "permissions": [
     "storage"

@@ -7,7 +7,7 @@ import path from 'node:path';
 
 const markup = `<!doctype html><html><head><title>Chat fixture</title></head><body>
   <h1>Chat fixture</h1><section data-message-id="first"><span>Ada · 10:42</span>
-    <div jsname="bgckF">Bonjour <b>tout le monde</b> !</div></section>
+    <div jsname="bgckF">Bonjour <b>tout le monde</b> !</div><div role="toolbar" aria-label="Message actions"><button aria-label="Add reaction">☺</button><button aria-label="Reply">↩</button><button aria-label="More options">⋮</button></div></section>
   <div contenteditable="true" role="textbox">Draft message</div>
 </body></html>`;
 
@@ -75,15 +75,15 @@ test('installed extension translates, toggles, observes edits and new messages, 
   await expect(page.locator('local-chat-translation .text')).toHaveText('Hello <script>world</script>!');
   assert.equal(await page.locator('[jsname="bgckF"]').innerHTML(), original);
   assert.equal(await page.locator('local-chat-translation script').count(), 0);
-  await page.getByRole('button', { name: 'Hide translation' }).click();
+  await page.locator('local-chat-translation').getByRole('button', { name: 'Hide translation' }).click();
   await expect(page.locator('local-chat-translation .result')).toBeHidden();
-  await page.getByRole('button', { name: 'Show translation' }).click();
+  await page.locator('local-chat-translation').getByRole('button', { name: 'Show translation' }).click();
   assert.equal(await isolated('translationCalls'), 1);
   await page.evaluate(() => {
     document.querySelector('[jsname="bgckF"]').firstChild.textContent = 'Bonsoir ';
     const section = document.createElement('section');
     section.setAttribute('data-message-id', 'second');
-    section.innerHTML = '<div class="DTp27d">Hola a todos</div>';
+    section.innerHTML = '<div class="DTp27d">Hola a todos</div><div role="toolbar"><button aria-label="Add reaction">☺</button></div>';
     document.body.append(section);
   });
   await expect(page.getByRole('button', { name: 'Translate to English' })).toHaveCount(2);
@@ -208,4 +208,156 @@ test('shared UI mounts under Google Chat Trusted Types policy', async t => {
   await page.evaluate(bundle.outputFiles[0].text);
   await expect(page.getByRole('button', { name: 'Translate to English' })).toHaveCount(1);
   await expect(page.locator('[jsname="bgckF"]')).toHaveText('Bonjour tout le monde !');
+});
+
+const themedMarkup = markup.replace('</head>', `<style>
+  body { background: #f1f3f4; color: #202124; font: 14px/1.5 Arial; }
+  section { position: relative; margin: 60px 20px; width: 540px; padding: 16px; background: #dde2e7; border-radius: 16px; }
+  [jsname="bgckF"] { color: #303134; }
+  body.dark { background: #202124; color: #e8eaed; }
+  body.dark section { background: #35383c; }
+  body.dark [jsname="bgckF"] { color: #e3e3e3; }
+  [role="toolbar"] { display: flex; position: absolute; right: 8px; top: -20px; background: inherit; border-radius: 20px; visibility: hidden; }
+  section:hover [role="toolbar"], section:focus-within [role="toolbar"] { visibility: visible; }
+  [role="toolbar"] button { color: inherit; background: transparent; border: 0; width: 32px; height: 32px; }
+</style></head>`);
+
+test('translate icon joins hover actions and survives toolbar replacement', async t => {
+  const { page, isolated } = await launch(t, undefined, () => themedMarkup);
+  const toolbar = page.getByRole('toolbar', { includeHidden: true });
+  const translate = toolbar.getByRole('button', { name: 'Translate to English', includeHidden: true });
+  await expect(translate).toHaveCount(1);
+  await expect(translate).toBeHidden();
+  await page.locator('section').hover();
+  await expect(translate).toBeVisible();
+  assert.equal(await translate.textContent(), '');
+  assert.equal(await page.locator('[aria-label="Add reaction"]').evaluate(el => el.nextElementSibling?.localName), 'local-chat-action');
+  await isolated(mock);
+  await translate.click();
+  await expect(page.locator('local-chat-translation .text')).toContainText('Hello');
+  const tab = page.locator('local-chat-translation').getByRole('button', { name: 'Hide translation' });
+  await expect(tab).toHaveText('French → English');
+  await tab.click();
+  await expect(page.locator('local-chat-translation .result')).toBeHidden();
+  await page.evaluate(() => {
+    const toolbar = document.querySelector('[role="toolbar"]');
+    const replacement = toolbar.cloneNode(true);
+    replacement.querySelector('local-chat-action').remove();
+    toolbar.replaceWith(replacement);
+  });
+  await page.locator('section').hover();
+  await page.getByRole('toolbar').getByRole('button', { name: 'Show translation' }).click();
+  await expect(page.locator('local-chat-translation .text')).toBeVisible();
+  assert.equal(await isolated('translationCalls'), 1);
+});
+
+test('translated text follows message colors even when the system theme differs', async t => {
+  const { page, isolated } = await launch(t, undefined, () => themedMarkup);
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.locator('section').hover();
+  await isolated(mock);
+  await page.getByRole('button', { name: 'Translate to English' }).click();
+  const output = page.locator('local-chat-translation .text');
+  await expect(output).toBeVisible();
+  await expect(output).toHaveCSS('color', 'rgb(48, 49, 52)');
+  await page.evaluate(() => document.body.classList.add('dark'));
+  await expect(output).toHaveCSS('color', 'rgb(227, 227, 227)');
+  await page.evaluate(() => document.body.classList.remove('dark'));
+  await expect(output).toHaveCSS('color', 'rgb(48, 49, 52)');
+});
+
+test('pending translation shows an animated skeleton and clears it on cancellation and error', async t => {
+  const { page, isolated } = await launch(t);
+  await isolated(mock + `Translator.create = async () => ({
+    translate: () => new Promise(resolve => { globalThis.completeTranslation = resolve; }), destroy() {}
+  });`);
+  await page.getByRole('button', { name: 'Translate to English' }).click();
+  const skeleton = page.locator('local-chat-translation .skeleton');
+  await expect(skeleton).toBeVisible();
+  await expect(page.locator('local-chat-translation .result')).toHaveAttribute('aria-busy', 'true');
+  assert.ok(await skeleton.evaluate(el => el.getAnimations({ subtree: true }).length > 0));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  assert.equal(await skeleton.evaluate(el => el.getAnimations({ subtree: true }).length), 0);
+  await page.getByRole('button', { name: 'Cancel translation', exact: true }).first().click();
+  await expect(skeleton).toBeHidden();
+  await isolated(mock + "Translator.availability = async () => 'unavailable';");
+  await page.getByRole('button', { name: 'Translate to English' }).click();
+  await expect(page.locator('local-chat-translation .status')).toContainText('unavailable');
+  await expect(skeleton).toBeHidden();
+});
+
+test('lazy live Chat toolbar gets one icon, outside reaction strips, with keyboard activation', async t => {
+  const fixture = markup.replace('data-message-id="first"', 'jsname="Ne3sFf"')
+    .replace(/<div role="toolbar".*?<\/div>/, '<div role="list"><button jsname="JlEEbd" aria-label="Add reaction">☺</button></div>');
+  const { page, isolated } = await launch(t, undefined, () => fixture);
+  await expect(page.locator('local-chat-translation')).toHaveCount(1);
+  await expect(page.locator('local-chat-action')).toHaveCount(0);
+  await page.evaluate(() => {
+    const toolbar = document.createElement('div');
+    toolbar.setAttribute('jsname', 'jpbBj');
+    toolbar.innerHTML = '<div class="eWw5ab"><div data-menu-action="1"><div jsname="FUbHCe"><span data-is-tooltip-wrapper><button jsname="JlEEbd" aria-label="Thêm biểu tượng cảm xúc">☺</button></span></div></div><button aria-label="Reply">↩</button></div>';
+    document.querySelector('[jsname="bgckF"]').parentElement.append(toolbar);
+    globalThis.nativeActionClicks = 0;
+    toolbar.addEventListener('click', () => nativeActionClicks++);
+  });
+  const button = page.getByRole('button', { name: 'Translate to English' });
+  await expect(button).toHaveCount(1);
+  assert.equal(await page.locator('local-chat-action').evaluate(el => el.previousElementSibling.getAttribute('data-menu-action')), '1');
+  await isolated(mock);
+  await button.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('local-chat-translation .text')).toContainText('Hello');
+  await expect(page.locator('local-chat-translation .skeleton')).toBeHidden();
+  assert.equal(await page.evaluate(() => nativeActionClicks), 0);
+  await page.evaluate(() => document.querySelector('[jsname="jpbBj"]').remove());
+  await expect(page.locator('local-chat-action')).toHaveCount(0);
+  await expect(page.locator('local-chat-translation .text')).toBeVisible();
+  await page.locator('local-chat-translation').getByRole('button', { name: 'Hide translation' }).click();
+  await expect(page.locator('local-chat-translation .result')).toBeHidden();
+});
+
+test('translation drawer slides, stays collapsed on completion, and reopens without the toolbar', async t => {
+  const { page, isolated } = await launch(t, undefined, () => themedMarkup);
+  await page.locator('section').hover();
+  await isolated(mock + `Translator.create = async () => ({
+    translate: () => { translationCalls++; return new Promise(resolve => { globalThis.completeTranslation = resolve; }); }, destroy() {}
+  });`);
+  await page.getByRole('button', { name: 'Translate to English' }).click();
+  await expect.poll(() => isolated('typeof completeTranslation')).toBe('function');
+  const host = page.locator('local-chat-translation');
+  const drawer = host.locator('.drawer');
+  const result = host.locator('.result');
+  const tab = host.getByRole('button');
+  await expect(tab).toHaveAttribute('aria-expanded', 'true');
+  await expect.poll(() => drawer.evaluate(el => el.getAnimations({ subtree: true }).filter(a => a.effect.target.className !== 'line').length)).toBe(0);
+  const openHeight = (await host.boundingBox()).height;
+  await tab.click();
+  assert.ok(await drawer.evaluate(el => el.getAnimations().length > 0));
+  await expect(result).toBeHidden();
+  await expect(tab).toBeVisible();
+  await expect(tab).toBeFocused();
+  assert.ok((await host.boundingBox()).height < openHeight);
+  assert.equal((await drawer.boundingBox()).height, 0);
+
+  await isolated("completeTranslation('Hello from the collapsed drawer')");
+  await expect(tab).toHaveText('French → English');
+  await expect(result).toBeHidden();
+  await page.evaluate(() => document.querySelector('[role="toolbar"]').remove());
+  await expect(page.locator('local-chat-action')).toHaveCount(0);
+  await tab.press('Enter');
+  await expect(host.locator('.text')).toBeVisible();
+  await expect(host.locator('.text')).toHaveText('Hello from the collapsed drawer');
+  await expect(tab).toHaveAttribute('aria-expanded', 'true');
+  // Reverse an in-flight slide, then reopen with Space and reduced motion.
+  await tab.press('Enter');
+  await tab.press('Enter');
+  await expect(result).toBeVisible();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await tab.press('Space');
+  await expect(result).toBeHidden();
+  assert.equal((await drawer.boundingBox()).height, 0);
+  await tab.press('Space');
+  await expect(result).toBeVisible();
+  assert.equal(await drawer.evaluate(el => el.getAnimations({ subtree: true }).length), 0);
+  assert.equal(await isolated('translationCalls'), 1);
 });
