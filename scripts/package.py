@@ -8,7 +8,8 @@ root = Path(__file__).resolve().parent.parent
 source = root / 'dist' / 'extension'
 manifest = json.loads((source / 'manifest.json').read_text())
 files = ['LICENSE', 'background.js', 'content.js', 'manifest.json', 'privacy.html',
-         'settings.css', 'settings.html', 'settings.js']
+         'settings.css', 'settings.html', 'settings.js', 'icons/translate.svg',
+         'icons/icon-16.png', 'icons/icon-32.png', 'icons/icon-48.png', 'icons/icon-128.png']
 actual = sorted(str(p.relative_to(source)) for p in source.rglob('*') if p.is_file())
 if actual != sorted(files):
     raise SystemExit(f'Unexpected build contents: {actual}')

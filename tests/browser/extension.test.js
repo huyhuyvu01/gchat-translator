@@ -107,6 +107,46 @@ test('installed extension translates, toggles, observes edits and new messages, 
   assert.deepEqual(errors, []);
 });
 
+test('settings keep the chosen theme across reopening and collapse help by default', async t => {
+  const { context, isolated } = await launch(t);
+  const id = await isolated('chrome.runtime.id');
+  let settings = await context.newPage();
+  await settings.setViewportSize({ width: 344, height: 640 });
+  await settings.emulateMedia({ colorScheme: 'dark' });
+  await settings.goto(`chrome-extension://${id}/settings.html`);
+  const theme = settings.getByRole('button', { name: 'Dark mode' });
+  await expect(theme).toHaveAttribute('aria-pressed', 'true');
+  await expect(settings.locator('html')).toHaveCSS('color-scheme', 'dark');
+  await expect(settings.getByRole('link', { name: 'Privacy policy' })).toBeHidden();
+  await theme.click();
+  await expect(settings.locator('html')).toHaveCSS('color-scheme', 'light');
+  await settings.getByLabel('Translate into').selectOption('ja');
+  await settings.getByRole('button', { name: 'Save settings' }).click();
+  await expect(settings.getByRole('status')).toContainText('Saved.');
+  // Native disclosure supports keyboard access without adding custom state.
+  await settings.locator('summary').focus();
+  await settings.keyboard.press('Enter');
+  await expect(settings.getByRole('link', { name: 'Privacy policy' })).toBeVisible();
+  await settings.keyboard.press('Space');
+  await expect(settings.getByRole('link', { name: 'Privacy policy' })).toBeHidden();
+  await settings.close();
+  settings = await context.newPage();
+  await settings.emulateMedia({ colorScheme: 'dark' });
+  await settings.goto(`chrome-extension://${id}/settings.html`);
+  await expect(settings.locator('html')).toHaveCSS('color-scheme', 'light');
+  await expect(settings.getByLabel('Translate into')).toHaveValue('ja');
+  await expect(settings.getByRole('link', { name: 'Privacy policy' })).toBeHidden();
+  await settings.getByRole('button', { name: 'Dark mode' }).click();
+  await settings.reload();
+  await expect(settings.locator('html')).toHaveCSS('color-scheme', 'dark');
+  await expect(settings.getByRole('status')).toBeEmpty();
+  for (const width of [320, 344]) {
+    await settings.setViewportSize({ width, height: 640 });
+    assert.equal(await settings.evaluate(() => document.documentElement.scrollWidth), width);
+    assert.ok((await settings.locator('main').boundingBox()).height < 400);
+  }
+});
+
 test('Gmail route changes limit controls to Chat', async t => {
   const { page } = await launch(t, 'https://mail.google.com/mail/u/2/#inbox');
   await expect(page.locator('local-chat-translation')).toHaveCount(0);
