@@ -11,7 +11,7 @@ const markup = `<!doctype html><html><head><title>Chat fixture</title></head><bo
   <div contenteditable="true" role="textbox">Draft message</div>
 </body></html>`;
 
-async function launch(t, url = 'https://chat.google.com/') {
+async function launch(t, url = 'https://chat.google.com/', fixture = () => markup) {
   const profile = await mkdtemp(path.join(tmpdir(), 'local-chat-test-'));
   const extension = path.resolve('dist/extension');
   const context = await chromium.launchPersistentContext(profile, {
@@ -22,7 +22,7 @@ async function launch(t, url = 'https://chat.google.com/') {
   const requests = [];
   await context.route(/^https:\/\//, route => {
     requests.push(route.request().url());
-    return route.fulfill({ contentType: 'text/html', body: markup });
+    return route.fulfill({ contentType: 'text/html', body: fixture(route.request().url()) });
   });
   const page = await context.newPage();
   const errors = [];
@@ -32,10 +32,11 @@ async function launch(t, url = 'https://chat.google.com/') {
   cdp.on('Runtime.executionContextCreated', event => worlds.push(event.context));
   await cdp.send('Runtime.enable');
   await page.goto(url);
+  const { frameTree } = await cdp.send('Page.getFrameTree');
   async function isolated(expression) {
     let world;
     await expect.poll(async () => {
-      for (const candidate of worlds.filter(w => w.auxData?.isDefault === false)) {
+      for (const candidate of worlds.filter(w => w.auxData?.isDefault === false && w.auxData.frameId === frameTree.frame.id)) {
         try {
           const { result } = await cdp.send('Runtime.evaluate', { contextId: candidate.id, expression: '!!globalThis.chrome?.runtime?.id', returnByValue: true });
           if (result.value) { world = candidate; return true; }
@@ -136,4 +137,18 @@ test('real browser exposes native AI APIs in the isolated extension world', asyn
   assert.equal(result.translator, 'function');
   assert.equal(result.detector, 'function');
   assert.ok(['available', 'downloadable', 'downloading', 'unavailable'].includes(result.state));
+});
+
+
+test('Gmail Chat iframe translates through the top frame despite frame API policy', async t => {
+  const { page, isolated, requests } = await launch(t, 'https://mail.google.com/mail/u/0/#chat/',
+    url => url.includes('mail.google.com') ? '<iframe src="https://chat.google.com/"></iframe>' : markup);
+  const frame = page.frameLocator('iframe');
+  await expect(frame.getByRole('button', { name: 'Translate to English' })).toHaveCount(1);
+  assert.equal(await page.frames().find(f => f.url().includes('chat.google.com')).evaluate(() => document.featurePolicy.allowsFeature('translator')), false);
+  await isolated(mock);
+  await frame.getByRole('button', { name: 'Translate to English' }).click();
+  await expect(frame.locator('local-chat-translation .text')).toHaveText('Hello <script>world</script>!');
+  assert.equal(await isolated('translationCalls'), 1);
+  assert.equal(requests.length, 2);
 });
