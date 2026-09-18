@@ -68,3 +68,14 @@ test('cancellation prevents subsequent model calls', async () => {
   await assert.rejects(translateMessage('Bonjour', settings, { ...setup, signal: controller.signal }), { name: 'AbortError' });
   assert.equal(setup.calls.length, 0);
 });
+
+
+test('cancels a stalled native availability check', async () => {
+  const setup = fake();
+  setup.environment.LanguageDetector.availability = () => new Promise(() => {});
+  const controller = new AbortController();
+  const pending = translateMessage('Bonjour', settings, { ...setup, signal: controller.signal });
+  controller.abort(new DOMException('Deadline exceeded', 'TimeoutError'));
+  await assert.rejects(pending, { name: 'TimeoutError' });
+  assert.ok(!setup.calls.some(c => c[1] === 'create'));
+});
