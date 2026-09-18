@@ -5,6 +5,8 @@ This codebase is about building an Chrome extension that allow translation for g
 - Chrome Language Detector API
 - Manifest V3
 
+After each implementation, build the artifacts zip file to artifacts that can be test quickly.
+
 Here is some technical and philosophical things to consider as we build and work together
 
 ## About me
