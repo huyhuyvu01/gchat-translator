@@ -1,0 +1,23 @@
+{
+  "name": "local-chat-translator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Translate individual Google Chat messages with Chrome's local Translator API.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "test:browser": "node --test tests/browser/*.test.js",
+    "build": "node scripts/build.js",
+    "package": "npm run build && python3 scripts/package.py",
+    "check": "npm test && npm run build"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "esbuild": "0.28.2",
+    "jsdom": "29.1.1"
+  }
+}
