@@ -2,6 +2,12 @@
 
 These records describe checks run on September 18, 2026. Successful automated translations used simulated Chat pages and test substitutes for Chrome's APIs. Real model download and translation in desktop Chrome still need manual testing.
 
+## Chrome Web Store preparation
+
+`npm run check` passed 10 core tests; `npm run test:browser` passed all 14 browser tests. The final ZIP passed integrity, checksum, reproducibility, and built-file comparisons. Store image dimensions and the icon's transparent padding passed inspection. The privacy page rendered with its stylesheet and links at 360px without horizontal overflow. The Pages workflow passed local YAML checks; deployment remains untested until the changes reach `main`.
+
+A native check loaded the packaged extension into a fresh, headed Chrome for Testing 153.0.8010.12 profile on Linux, with background networking and component updates allowed. It used invented French text on a simulated Chat page and the real Translator API, with French selected explicitly. The UI reached "Downloading translation model" but produced no result or download progress within 150 seconds. This did not establish successful native translation, automatic detection, or live Gmail compatibility. The connected preview is Electron 44.1.0, not desktop Google Chrome.
+
 ## GChat Translator rename and documentation rewrite
 
 `npm run check` passed 10 core tests and built the renamed extension. `npm run test:browser` passed all 14 browser tests. The rewrite covered the README, contributor and security docs, implementation notes, manual checklist, validation and audit reports, and the extension's help and privacy text. `AGENTS.md` and `CLAUDE.md` stayed unchanged.

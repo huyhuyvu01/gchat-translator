@@ -4,6 +4,18 @@ Use a test account or conversations you have permission to inspect. Test transla
 
 Record the date, OS, Chrome version, extension commit, view, target language, and result. Keep private message text, conversation IDs, screenshots, and browser profiles out of this repository.
 
+## Store reviewer instructions
+
+Use desktop Google Chrome 138 or newer with its built-in Translator and Language Detector APIs available. Sign in to a Google account that can use Google Chat. The extension has no separate account, payment, API key, or private backend.
+
+1. Open `https://chat.google.com/` and a test conversation with a French message such as "Bonjour, la réunion commence demain à neuf heures." Use an existing test message or arrange one in your own test conversation.
+2. Open the extension popup, leave translation enabled, choose English as the target and automatic detection as the message language, then save. Reload Chat if it was already open when the extension was installed.
+3. Hover over the French message and click the translation icon beside Add reaction. Chrome may download models on the first request. Allow the download, and click Retry translation if prompted.
+4. Confirm an English result appears below the unchanged French original. Hide and reopen it using the tab below the result. If automatic detection is uncertain, select French explicitly in the popup and retry.
+5. Repeat in Gmail's Chat view at `https://mail.google.com/mail/u/0/#chat/`, using the correct account index. Translation should also work in embedded Chat conversations. Switch to the inbox and confirm emails have no translation controls.
+
+Internet access is needed for initial model downloads. Availability depends on the device, language pair, and administrator policies. If Chrome reports unavailable models, use another supported desktop device. Report the Chrome version, OS, and failing step without including private conversation text.
+
 ## Install and translate
 
 - Run `npm ci` and `npm run build`. Load `dist/extension` at `chrome://extensions`.

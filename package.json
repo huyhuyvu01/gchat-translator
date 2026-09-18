@@ -13,6 +13,7 @@
     "test:browser": "node --test tests/browser/*.test.js",
     "build": "node scripts/build.js",
     "package": "npm run build && python3 scripts/package.py",
+    "store:assets": "npm run build && node scripts/store-assets.js",
     "check": "npm test && npm run build"
   },
   "devDependencies": {
