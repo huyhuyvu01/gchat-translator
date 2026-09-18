@@ -16,4 +16,4 @@ Sources checked 2026-09-18:
 - https://developer.chrome.com/docs/ai/language-detection
 - https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts
 
-The user later signed in and authorized read-only translation tests. The shared browser connection then dropped while checking API availability. See VALIDATION.md for the current live-test status. Synthetic browser tests cannot establish compatibility with current production Chat markup or real translation model downloads.
+The user signed in and authorized translation tests without sending messages. The shared preview connection recovered. Live message selectors, control insertion, original preservation, settings changes, and controls for messages loaded by scrolling were checked using the source modules in the Electron preview. Native model translation did not succeed there. See VALIDATION.md for results and remaining desktop Chrome acceptance checks.
