@@ -1,19 +1,30 @@
-# Implementation plan
+# Implementation status
 
-- [x] Local translation controller and message extraction, with automated tests.
-- [x] Inline controls, mutation handling, and settings.
-- [x] Browser integration tests and reproducible ZIP.
-- [x] Public documentation, privacy policy, license, and CI.
+- [x] Local translation and message extraction, with automated tests.
+- [x] Inline controls, message change handling, and settings.
+- [x] Browser integration tests and a reproducible ZIP.
+- [x] Public docs, privacy policy, license, and CI.
+- [x] Publish tested ZIPs and checksums to GitHub Releases after pushes to `main`.
 - [ ] Manual validation in signed-in Google Chat and Gmail Chat with real models.
 
-Use only the storage permission and scoped declarative content scripts. Keep message text in page memory. Never send it through a service or persist it. Insert the translation icon beside the hover toolbar reaction action and append a separate result below the message body without rewriting the body. Restrict extraction to known Google Chat message markup, with no generic text fallback.
+## Translation and message handling
 
-Translation and language detection run in the isolated content-script world. Verify API exposure and cross-origin frame policy in browser tests. Gmail embeds Chat in frames; inject into matching Chat frames as well as Gmail's Chat route. Browser testing confirmed that Chrome blocks AI in a cross-origin frame. An extension port relay now executes those requests in the same tab’s top-frame content script, with progress and cancellation. This adds no permission and no network request.
+GChat Translator uses the `storage` permission and content scripts limited to Google Chat and Gmail. Message text stays in memory. The extension does not send it to a server or save it.
 
-Sources checked 2026-09-18:
+The translation icon sits beside the reaction action in the message's hover toolbar. Results appear below the message body without changing the original. Text extraction uses known Chat markup and has no fallback that reads arbitrary page text.
 
-- https://developer.chrome.com/docs/ai/translator-api
-- https://developer.chrome.com/docs/ai/language-detection
-- https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts
+Translation and language detection run in isolated content scripts. Browser tests check that the APIs are available there and test cross-origin frame restrictions. Gmail embeds Chat in frames, so content scripts run in matching Chat frames and on Gmail's Chat route.
 
-The user signed in and authorized translation tests without sending messages. The shared preview connection recovered. Live message selectors, control insertion, original preservation, settings changes, and controls for messages loaded by scrolling were checked using the source modules in the Electron preview. Native model translation did not succeed there. See VALIDATION.md for results and remaining desktop Chrome acceptance checks.
+Chrome blocks its AI APIs in cross-origin frames. An extension port relay passes those translation requests to the same tab's top-frame content script. It supports progress and cancellation without another permission or a network request.
+
+The implementation used these sources, checked on September 18, 2026:
+
+- [Chrome Translator API](https://developer.chrome.com/docs/ai/translator-api)
+- [Chrome Language Detector API](https://developer.chrome.com/docs/ai/language-detection)
+- [Extension content scripts](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)
+
+## Validation still needed
+
+The account owner authorized tests on existing messages without sending messages. After the shared preview connection recovered, tests in the Electron preview checked live message selectors, control placement, preservation of original messages, settings changes, and controls on messages loaded by scrolling. These checks used the source modules injected into the page.
+
+Native translation did not succeed in that preview. See [validation results](VALIDATION.md) for the evidence and the remaining desktop Chrome checks.

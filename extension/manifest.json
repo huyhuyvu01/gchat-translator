@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Local Chat Translator",
+  "name": "GChat Translator",
   "version": "0.1.1",
   "description": "Translate individual Google Chat messages locally in Chrome, with the original text preserved.",
   "permissions": [
@@ -17,7 +17,7 @@
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png"
     },
-    "default_title": "Local Chat Translator",
+    "default_title": "GChat Translator",
     "default_popup": "settings.html"
   },
   "options_ui": {
