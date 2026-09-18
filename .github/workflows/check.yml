@@ -1,0 +1,32 @@
+name: Check extension
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - run: npm ci
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npm run test:browser
+      - run: |
+          npm run package
+          cp artifacts/*.zip /tmp/first-build.zip
+          npm run package
+          cmp /tmp/first-build.zip artifacts/*.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: local-chat-translator
+          path: artifacts/*
