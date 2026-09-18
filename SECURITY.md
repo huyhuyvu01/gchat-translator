@@ -1,7 +1,9 @@
 # Security
 
-Do not put private messages, account data, or credentials in public issues.
+Keep private messages, account data, and credentials out of public issues.
 
-For a vulnerability involving data exposure, use the repository host's private vulnerability reporting feature when available. If it is unavailable, open a public issue asking the maintainer for a private contact without disclosing the vulnerability or private data. Maintainers should enable private vulnerability reporting before publishing this repository.
+Report vulnerabilities that could expose data through the repository host's private vulnerability reporting feature. If that feature is unavailable, open an issue asking the maintainer for a private contact. Do not include the vulnerability details or private data in that issue. Maintainers should enable private reporting before publishing the repository.
 
-Include the extension version, Chrome version, a description of the impact, and reproduction steps using synthetic messages. The extension should never transmit message text through a network API, persist translations, execute model output as HTML, or load remote code.
+In the private report, include the extension and Chrome versions, the impact, and steps to reproduce the problem with invented messages.
+
+GChat Translator must not send message text over a network, save translations, execute model output as HTML, or load remote code.

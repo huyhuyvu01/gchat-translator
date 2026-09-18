@@ -15,7 +15,7 @@ if actual != sorted(files):
     raise SystemExit(f'Unexpected build contents: {actual}')
 output = root / 'artifacts'
 output.mkdir(exist_ok=True)
-archive = output / f'local-chat-translator-{manifest["version"]}.zip'
+archive = output / f'gchat-translator-{manifest["version"]}.zip'
 with ZipFile(archive, 'w', compression=ZIP_STORED) as package:
     for name in sorted(files):
         info = ZipInfo(name, date_time=(2026, 1, 1, 0, 0, 0))

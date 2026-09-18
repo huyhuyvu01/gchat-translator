@@ -1,11 +1,22 @@
 # Contributing
 
-Keep the extension local, explicit, and small. Do not add a remote translation fallback or collect conversation data.
+GChat Translator translates on the user's device when they click a message's translation button. Keep that behavior. Do not add remote translation or collect conversation data.
 
-Before opening a pull request, run `npm test`, `npm run build`, `npm run test:browser`, and `npm run package`. Explain the behavior changed and how you tested it. Include a regression test for extraction, lifecycle, or translation bugs. UI copy changes do not need tests that merely repeat the copy.
+Before opening a pull request, run:
 
-Google Chat markup changes should include a minimal synthetic fixture. Preserve only the structure needed to reproduce the issue. Replace message text, names, addresses, conversation IDs, and account identifiers with invented values. Do not commit live conversation screenshots, exports, browser profiles, or credentials.
+```sh
+npm test
+npm run build
+npm run test:browser
+npm run package
+```
 
-Keep permissions at the minimum required for the behavior. Any added permission needs a concrete explanation in the pull request and privacy policy.
+Describe what changed and how you tested it. Add regression tests for bugs in message extraction, message updates and cleanup, or translation. Copy edits do not need tests that repeat the new wording.
 
-Use small commits that each describe a reviewable change. Contributions are licensed under the project's MIT license.
+For changes to Chat selectors, include a small test fixture with only the markup needed to reproduce the problem. Use invented messages, names, addresses, conversation IDs, and account identifiers. Never commit live conversation screenshots, exports, browser profiles, or credentials.
+
+Request only the permissions the extension needs. Explain any added permission in the pull request and privacy policy.
+
+Merges and direct pushes to `main` publish a GitHub Release after CI passes. Check the workflow result and release assets after merging.
+
+Keep each commit focused on a change a reviewer can assess. Contributions use the project's MIT license.

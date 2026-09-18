@@ -1,6 +1,7 @@
-name: Check extension
+name: Check and release extension
 on:
   push:
+    branches: ['**']
   pull_request:
 permissions:
   contents: read
@@ -8,12 +9,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
           cache: npm
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.x'
       - run: npm ci
@@ -21,12 +22,50 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - run: npm run test:browser
-      - run: |
+      - name: Package and check reproducibility
+        run: |
           npm run package
-          cp artifacts/*.zip /tmp/first-build.zip
+          cp artifacts/*.zip "$RUNNER_TEMP/first-build.zip"
           npm run package
-          cmp /tmp/first-build.zip artifacts/*.zip
-      - uses: actions/upload-artifact@v4
+          cmp "$RUNNER_TEMP/first-build.zip" artifacts/*.zip
+          (cd artifacts && sha256sum --check *.zip.sha256)
+          python3 -m zipfile --test artifacts/*.zip
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: local-chat-translator
+          name: gchat-translator
           path: artifacts/*
+          if-no-files-found: error
+
+  release:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: gchat-translator
+          path: artifacts
+      - name: Publish tested ZIP and checksum
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="build-$GITHUB_SHA"
+          (cd artifacts && sha256sum --check *.zip.sha256)
+          cat > "$RUNNER_TEMP/release-notes.md" <<EOF_NOTES
+          Built from commit $GITHUB_SHA after core tests, browser tests, and ZIP checks passed.
+
+          Download and extract the ZIP. Open chrome://extensions, enable Developer mode, click Load unpacked, and select the extracted folder. Reload open Google Chat or Gmail tabs.
+
+          The .sha256 file lets you verify the download.
+          EOF_NOTES
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" artifacts/* --clobber
+          else
+            gh release create "$tag" artifacts/* \
+              --target "$GITHUB_SHA" \
+              --title "GChat Translator build ${GITHUB_SHA:0:7}" \
+              --notes-file "$RUNNER_TEMP/release-notes.md"
+          fi
