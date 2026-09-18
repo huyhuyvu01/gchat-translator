@@ -12,9 +12,28 @@ export function friendlyError(error) {
   return 'Local translation failed. Check that Chrome can download its language models, then retry.';
 }
 
+// availability() does not accept an AbortSignal. Stop waiting when the user
+// cancels or the UI deadline expires, even if Chrome's check is still pending.
+async function availability(api, options, signal) {
+  if (!signal) return api.availability(options);
+  signal.throwIfAborted();
+  let abort;
+  try {
+    return await Promise.race([
+      api.availability(options),
+      new Promise((_, reject) => {
+        abort = () => reject(signal.reason);
+        signal.addEventListener('abort', abort, { once: true });
+      }),
+    ]);
+  } finally {
+    signal.removeEventListener('abort', abort);
+  }
+}
+
 async function createModel(api, options, label, report, signal, environment) {
   signal?.throwIfAborted();
-  const state = await api.availability(options);
+  const state = await availability(api, options, signal);
   signal?.throwIfAborted();
   if (state === 'unavailable') throw new TranslationError(`${label} is unavailable on this device or for these languages. Check Chrome settings or choose another language.`);
   if (!['available', 'downloadable', 'downloading'].includes(state)) {
