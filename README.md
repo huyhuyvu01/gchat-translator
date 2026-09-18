@@ -1,8 +1,10 @@
 # Local Chat Translator
 
-A Manifest V3 extension that adds a Translate button beside individual Google Chat messages. Chrome translates on your device. The original message stays readable, and you can hide or show each result.
+A Manifest V3 extension that adds a translation icon to the hover toolbar of individual Google Chat messages. Chrome translates on your device. The original message stays readable, and you can hide or show each result.
 
 Supports `https://chat.google.com/*` and Gmail's `https://mail.google.com/mail/u/<account>/#chat/` view, including embedded Chat frames. There is no server, API key, cloud translation fallback, or telemetry.
+
+![Translation card expanded and collapsed, rendered with sample messages](docs/extension-preview.png)
 
 ## Install from source
 
@@ -17,9 +19,9 @@ npm run build
 2. Click **Load unpacked** and select this repository's `dist/extension` directory.
 3. Reload your Google Chat or Gmail tab.
 4. Open the extension's toolbar popup, choose a target language, and save.
-5. Click **Translate to …** beside a message. Use **Hide translation** to collapse the result.
+5. Hover over a message and click the translation icon next to **Add reaction**. Use the tab beneath the translation to slide the card closed or open again without translating again. The tab stays visible when the card is hidden.
 
-The first request may download Chrome's language models. Progress appears beneath the button. If a download outlasts Chrome's user-activation window, click **Retry translation** to continue. Once the models are ready, each message translates with one click. **Cancel translation** stops a pending request.
+The first request may download Chrome's language models. An animated skeleton and model progress appear below the message. The skeleton and sliding card respect reduced-motion settings. If a download outlasts Chrome's user-activation window, click **Retry translation** to continue. Once the models are ready, each message translates with one click. Click the toolbar icon again to cancel a pending request. Hiding the card with its tab lets the translation finish in the background.
 
 The popup can turn all translation controls off. It also offers a source-language override for short or mixed-language messages that automatic detection cannot identify. Settings changes apply to open tabs and clear previous translations.
 
@@ -48,7 +50,7 @@ See [the manual test checklist](docs/MANUAL_TESTING.md) and [validation results]
 
 ## Package
 
-`npm run package` writes `artifacts/local-chat-translator-0.1.0.zip` and its SHA-256 checksum. The ZIP contains only runtime files and the license. File order, timestamps, permissions, and uncompressed ZIP entries are fixed, so the same locked dependencies and source produce the same bytes. Python 3 is required for packaging. Generated output is ignored by Git.
+`npm run package` writes `artifacts/local-chat-translator-0.1.1.zip` and its SHA-256 checksum. The ZIP contains only runtime files and the license. File order, timestamps, permissions, and uncompressed ZIP entries are fixed, so the same locked dependencies and source produce the same bytes. Python 3 is required for packaging. Generated output is ignored by Git.
 
 The archive can be extracted and loaded unpacked or submitted to the Chrome Web Store. This repository does not publish or sign releases automatically.
 

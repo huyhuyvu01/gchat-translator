@@ -1,6 +1,23 @@
 // Google Chat's DOM is private and can change. Keep all selectors here.
 export const messageSelector = '[jsname="bgckF"], [data-message-id] .DTp27d';
 export const controlTag = 'local-chat-translation';
+export const actionTag = 'local-chat-action';
+export const messageContainerSelector = '[data-message-id], [jsname="Ne3sFf"]';
+
+export function findMessageAction(body) {
+  const container = body.closest(messageContainerSelector);
+  if (!container) return null;
+  // Chat creates this toolbar on hover. The reaction strip below a message
+  // also has an Add reaction button, so never search for that label alone.
+  const reaction = container.querySelector('[jsname="jpbBj"] [data-menu-action="1"]');
+  if (reaction) return reaction;
+  const toolbar = container.querySelector('[role="toolbar"]');
+  const button = toolbar?.querySelector('[jsname="JlEEbd"], [aria-label="Add reaction"], [aria-label="Add emoji reaction"]');
+  if (!button) return null;
+  let action = button;
+  while (action.parentElement !== toolbar) action = action.parentElement;
+  return action;
+}
 const excluded = `script, style, button, [role="button"], [hidden], [aria-hidden="true"],
   [contenteditable]:not([contenteditable="false"]), [role="textbox"], ${controlTag}`;
 const blocks = new Set(['DIV', 'P', 'LI', 'PRE', 'BLOCKQUOTE']);
